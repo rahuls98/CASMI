@@ -1,4 +1,8 @@
-node_modules
-extras
-src/config.js
+# files
 .DS_Store
+config.js
+
+# folders
+extras
+node_modules
+uploads

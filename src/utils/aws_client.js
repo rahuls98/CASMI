@@ -1,5 +1,5 @@
 const aws = require("aws-sdk");
-const { AWS_CONFIG } = require("../config");
+const { AWS_CONFIG } = require("../../config");
 
 const awsClient = new aws.S3({
     region: AWS_CONFIG.REGION,

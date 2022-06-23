@@ -1,5 +1,5 @@
 const azureClient = require("../../utils/azure_client");
-const { AZURE_CONFIG } = require("../../config");
+const { AZURE_CONFIG } = require("../../../config");
 
 const getStores = async (req, res, next) => {
     const stores = azureClient.listContainers();
@@ -26,7 +26,18 @@ const getFiles = async (req, res, next) => {
     });
 };
 
+const postFile = async (req, res, next) => {
+    const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
+    const blockBlobClient = containerClient.getBlockBlobClient(req.file.originalname);
+    const uploadBlobResponse = await blockBlobClient.uploadFile(req.file.path);
+    console.log(uploadBlobResponse);
+    res.send({
+        success: true,
+    });
+};
+
 module.exports = {
     getStores,
     getFiles,
+    postFile,
 };
