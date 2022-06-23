@@ -1,3 +1,4 @@
+const fs = require("fs");
 const gcpClient = require("../../utils/gcp_client");
 const { GCP_CONFIG } = require("../../../config");
 
@@ -7,10 +8,7 @@ const getStores = async (req, res, next) => {
     for (let store of stores) {
         storeNames.push(store.name);
     }
-    res.send({
-        success: true,
-        stores: storeNames,
-    });
+    res.send({ success: true, stores: storeNames });
 };
 
 const getFiles = async (req, res, next) => {
@@ -19,23 +17,14 @@ const getFiles = async (req, res, next) => {
     for (let file of files) {
         fileNames.push(file.name);
     }
-    res.send({
-        success: true,
-        files: fileNames,
-    });
+    res.send({ success: true, files: fileNames });
 };
 
 const postFile = async (req, res, next) => {
     await gcpClient.bucket(GCP_CONFIG.BUCKET_NAME).upload(req.file.path, {
         destination: req.file.originalname,
     });
-    res.send({
-        success: true,
-    });
+    res.send({ success: true });
 };
 
-module.exports = {
-    getStores,
-    getFiles,
-    postFile,
-};
+module.exports = { getStores, getFiles, postFile };

@@ -1,3 +1,4 @@
+const fs = require("fs");
 const azureClient = require("../../utils/azure_client");
 const { AZURE_CONFIG } = require("../../../config");
 
@@ -7,10 +8,7 @@ const getStores = async (req, res, next) => {
     for await (const store of stores) {
         storeNames.push(store.name);
     }
-    res.send({
-        success: true,
-        stores: storeNames,
-    });
+    res.send({ success: true, stores: storeNames });
 };
 
 const getFiles = async (req, res, next) => {
@@ -20,24 +18,14 @@ const getFiles = async (req, res, next) => {
     for await (const file of files) {
         fileNames.push(file.name);
     }
-    res.send({
-        success: true,
-        files: fileNames,
-    });
+    res.send({ success: true, files: fileNames });
 };
 
 const postFile = async (req, res, next) => {
     const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
     const blockBlobClient = containerClient.getBlockBlobClient(req.file.originalname);
-    const uploadBlobResponse = await blockBlobClient.uploadFile(req.file.path);
-    console.log(uploadBlobResponse);
-    res.send({
-        success: true,
-    });
+    await blockBlobClient.uploadFile(req.file.path);
+    res.send({ success: true });
 };
 
-module.exports = {
-    getStores,
-    getFiles,
-    postFile,
-};
+module.exports = { getStores, getFiles, postFile };

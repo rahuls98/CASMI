@@ -10,10 +10,7 @@ const getStores = (req, res, next) => {
         for (let store of stores) {
             storeNames.push(store.Name);
         }
-        res.send({
-            success: true,
-            stores: storeNames,
-        });
+        res.send({ success: true, stores: storeNames });
     });
 };
 
@@ -28,10 +25,7 @@ const getFiles = async (req, res, next) => {
         for (let file of files) {
             fileNames.push(file.Key);
         }
-        res.send({
-            success: true,
-            files: fileNames,
-        });
+        res.send({ success: true, files: fileNames });
     });
 };
 
@@ -43,14 +37,8 @@ const postFile = async (req, res, next) => {
     };
     awsClient.upload(params, (err, data) => {
         if (err) throw err;
-        res.send({
-            success: true,
-        });
+        res.send({ success: true });
     });
 };
 
-module.exports = {
-    getStores,
-    getFiles,
-    postFile,
-};
+module.exports = { getStores, getFiles, postFile };
