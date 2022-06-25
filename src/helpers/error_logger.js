@@ -1,8 +1,10 @@
 const errorLogger = (turboTrace, err) => {
-    console.log(`\n\n${turboTrace} ${err.name}`);
-    console.log(`\n${err.message}`);
-    console.log(`\n${err.stack}`);
-    console.log(`\n /* ---------- */`);
+    console.log(`
+        \n${turboTrace} ${err.name}
+        \n${err.message}
+        \n${err.stack}
+        \n /* ---------- */
+    `);
 };
 
 module.exports = errorLogger;
