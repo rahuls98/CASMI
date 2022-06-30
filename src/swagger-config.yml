@@ -1,0 +1,43 @@
+openapi: 3.0.0
+info:
+    title: EXL Hack APIs
+    description: EXL Hack APIs
+    version: 1.0.0
+servers:
+    - url: http://localhost:8000/api/v1
+paths:
+    # Files
+    /files:
+        get:
+            summary: Summary
+            description: Description
+            tags:
+                - Files
+            responses:
+                "200":
+                    description: Success
+    /files/upload:
+        post:
+            summary: Summary
+            description: Description
+            tags:
+                - Files
+
+    # Providers
+    /providers:
+        get:
+            summary: Summary
+            description: Description
+            tags:
+                - Providers
+            responses:
+                "200":
+                    description: Success
+
+    # Stores
+    /stores:
+        get:
+            summary: Summary
+            description: Description
+            tags:
+                - Stores

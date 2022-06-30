@@ -37,4 +37,18 @@ const uploadFile = async (req, res) => {
     res.send({ success: true });
 };
 
-module.exports = { getFiles, uploadFile };
+const downloadFile = async (req, res) => {
+    //awsUtils.downloadFile();
+    //gcpUtils.downloadFile();
+    //azureUtils.downloadFile();
+    //res.attachment(".gitignore");
+    awsUtils.getPresignedUrl();
+    //res.set("Cache-Control", "no-store");
+    res.send({ msg: "OK" });
+    //let downloadStream = await awsUtils.getDownloadStream();
+    //let downloadStream = await azureUtils.getDownloadStream();
+    //let downloadStream = await gcpUtils.getDownloadStream();
+    //downloadStream.pipe(res);
+};
+
+module.exports = { getFiles, uploadFile, downloadFile };

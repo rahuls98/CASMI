@@ -1,5 +1,11 @@
 const fs = require("fs");
-const { ListBucketsCommand, ListObjectsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+    GetObjectCommand,
+    ListBucketsCommand,
+    ListObjectsCommand,
+    PutObjectCommand,
+} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const awsClient = require("../clients/aws.client");
 const { AWS_CONFIG } = require("../../config");
 const errorLogger = require("../helpers/error_logger");
@@ -13,7 +19,7 @@ const getStores = async () => {
         }
         return stores;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ line 15 ~ getStores ~ err", err);
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ getStores ~ err", err);
     }
 };
 
@@ -28,7 +34,7 @@ const getFiles = async () => {
         }
         return files;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ line 31 ~ getFiles ~ err", err);
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ getFiles ~ err", err);
     }
 };
 
@@ -41,8 +47,39 @@ const uploadFile = async (fileName, filePath) => {
         };
         await awsClient.send(new PutObjectCommand(params));
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ line 44 ~ uploadFile ~ err", err);
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ uploadFile ~ err", err);
     }
 };
 
-module.exports = { getStores, getFiles, uploadFile };
+const getPresignedUrl = async () => {
+    try {
+        const params = {
+            Bucket: AWS_CONFIG.BUCKET_NAME,
+            Key: ".gitignore",
+            Body: "BODY",
+        };
+        const command = new GetObjectCommand(params);
+        const signedUrl = await getSignedUrl(awsClient, command, {
+            expiresIn: 20,
+        });
+        console.log(signedUrl);
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ getPresignedUrl ~ err", err);
+    }
+};
+
+const getDownloadStream = async () => {
+    try {
+        const params = {
+            Bucket: AWS_CONFIG.BUCKET_NAME,
+            Key: "AWS-Test/",
+            Body: "BODY",
+        };
+        let filestream = await awsClient.send(new GetObjectCommand(params));
+        return filestream.Body;
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ getDownloadStream ~ err", err);
+    }
+};
+
+module.exports = { getStores, getFiles, uploadFile, getDownloadStream, getPresignedUrl };

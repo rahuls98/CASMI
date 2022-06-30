@@ -1,3 +1,4 @@
+const stream = require("stream");
 const gcpClient = require("../clients/gcp.client");
 const { GCP_CONFIG } = require("../../config");
 const errorLogger = require("../helpers/error_logger");
@@ -11,7 +12,7 @@ const getStores = async () => {
         }
         return stores;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ line 13 ~ getStores ~ err", err);
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getStores ~ err", err);
     }
 };
 
@@ -24,7 +25,7 @@ const getFiles = async () => {
         }
         return fileNames;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ line 26 ~ getFiles ~ err", err);
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getFiles ~ err", err);
     }
 };
 
@@ -34,8 +35,36 @@ const uploadFile = async (fileName, filePath) => {
             destination: fileName,
         });
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ line 36 ~ uploadFile ~ err", err);
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ uploadFile ~ err", err);
     }
 };
 
-module.exports = { getStores, getFiles, uploadFile };
+const getPresignedUrl = async () => {
+    const options = {
+        version: "v4",
+        action: "read",
+        //expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+        expires: Date.now() + 20 * 1000, // 20 seconds
+    };
+
+    const [url] = await gcpClient
+        .bucket(GCP_CONFIG.BUCKET_NAME)
+        .file(".gitignore")
+        .getSignedUrl(options);
+
+    console.log("Generated GET signed URL:");
+    console.log(url);
+};
+
+const getDownloadStream = async () => {
+    let filestream = await gcpClient
+        .bucket(GCP_CONFIG.BUCKET_NAME)
+        .file(".gitignore")
+        .createReadStream();
+
+    const dataStream = new stream.PassThrough();
+    filestream.pipe(dataStream);
+    return dataStream;
+};
+
+module.exports = { getStores, getFiles, uploadFile, getDownloadStream };
