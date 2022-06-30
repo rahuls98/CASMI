@@ -41,3 +41,30 @@ paths:
             description: Description
             tags:
                 - Stores
+
+    # Users
+    /users/login:
+        post:
+            summary: Summary
+            description: Description
+            tags:
+                - Users
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LoginRequest"
+            responses:
+                "200":
+                    description: Success
+
+components:
+    schemas:
+        LoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string

@@ -46,9 +46,8 @@ const uploadFile = async (fileName, filePath) => {
 };
 
 const getPresignedUrl = async () => {
-    const AZURE_STORAGE_ACCOUNT = "exlhackathonstorage";
-    const AZURE_STORAGE_ACCESS_KEY =
-        "UQFMDfiTfvOlsAFkZZ4C4X+tjuUahogx9aTcR/hqNkFYq4EGQHf+pPOi1+opVu/fqdE43b0Iroz1+AStBItGQw==";
+    const AZURE_STORAGE_ACCOUNT = AZURE_CONFIG.STORAGE_ACCOUNT;
+    const AZURE_STORAGE_ACCESS_KEY = AZURE_CONFIG.AZURE_STORAGE_ACCESS_KEY;
     const sharedKeyCredential = new StorageSharedKeyCredential(
         AZURE_STORAGE_ACCOUNT,
         AZURE_STORAGE_ACCESS_KEY

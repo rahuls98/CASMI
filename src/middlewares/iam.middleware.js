@@ -1,24 +1,13 @@
 const adminAuth = require("../auth/admin.auth");
 
-const verifyAccess = (allowedTypes) => {
+const verifyAccess = (allowed) => {
     return (req, res, next) => {
-        /* if (idToken) {
-            const accessType = adminAuth.verifyUser(req.body.accessType)
-            switch (accessType) {
-                case 'admin': break;
-                case 'programmatic': break;
-                case 'guest': break;
-            } 
-            next();
-        } else if (apiKey) {
-            verify API key
-            next();
+        if (req.body.idToken) {
+            const accessClaim = adminAuth.verifyUser(req.body.idToken);
+            allowed.includes(accessClaim) ? next() : res.send({ msg: "Unauthorized!" });
         } else {
             res.send({ msg: "Unauthorized!" });
-        } */
-
-        console.log(allowedTypes);
-        res.send({ msg: "Unauthorized!" });
+        }
     };
 };
 

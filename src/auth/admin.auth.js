@@ -33,17 +33,18 @@ const createUser = (userData) => {
 const setUserClaims = () => {
     firebaseAdmin
         .auth()
-        .setCustomUserClaims("gwy7EXs1YJP6bD3Iilyz1gmMOLs1", { admin: null })
+        .setCustomUserClaims("gwy7EXs1YJP6bD3Iilyz1gmMOLs1", { access: "admin" })
         .then((res) => console.log(res))
         .catch((err) => console.log(err));
 };
 
-const verifyUser = (idToken) => {
-    firebaseAdmin
-        .auth()
-        .verifyIdToken(idToken)
-        .then((res) => console.log(res))
-        .catch((err) => console.log(err));
+const verifyUser = async (idToken) => {
+    try {
+        let claims = await firebaseAdmin.auth().verifyIdToken(idToken);
+        return claims.access;
+    } catch (err) {
+        console.log("DEBUG LOG ~ file: admin.auth.js ~ verifyUser ~ err", err);
+    }
 };
 
 module.exports = { listUsers, createUser, setUserClaims, verifyUser };
