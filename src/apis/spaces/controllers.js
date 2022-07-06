@@ -65,7 +65,7 @@ const readSpaceById = async (req, res) => {
                 .map((id) => Number(id));
             const response = { success: true, space: readSpaceResponse[0] };
             res.header("Content-Type", "application/json");
-            res.send(JSON.stringify(response, null, 4));
+            res.status(200).send(JSON.stringify(response, null, 4));
         }
     } catch (err) {
         errorLogger("DEBUG LOG ~ file: controllers.js ~ readSpaceById ~ err", err);
