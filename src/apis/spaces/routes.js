@@ -4,7 +4,8 @@ const iamMiddleware = require("../../middlewares/iam.middleware");
 const bodyParser = require("body-parser");
 const controllers = require("./controllers");
 
-router.get("/", iamMiddleware.verifyAccess(["admin", "programmatic"]), controllers.readStores);
-router.get("/:id", bodyParser.json(), controllers.readStoreById);
+router.get("/", iamMiddleware.verifyAccess([]), controllers.readSpaces);
+router.post("/", iamMiddleware.verifyAccess([]), bodyParser.json(), controllers.createSpace);
+router.get("/:id", iamMiddleware.verifyAccess([]), controllers.readSpaceById);
 
 module.exports = router;

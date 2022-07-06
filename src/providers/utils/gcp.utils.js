@@ -1,7 +1,7 @@
 const stream = require("stream");
 const gcpClient = require("../clients/gcp.client");
-const { GCP_CONFIG } = require("../../config");
-const errorLogger = require("../helpers/error_logger");
+const { GCP_CONFIG } = require("../../../config");
+const errorLogger = require("../../helpers/error_logger");
 
 const getStores = async () => {
     try {
@@ -67,4 +67,14 @@ const getDownloadStream = async () => {
     return dataStream;
 };
 
-module.exports = { getStores, getFiles, uploadFile, getDownloadStream };
+const createFolder = async () => {
+    try {
+        await gcpClient.bucket(GCP_CONFIG.BUCKET_NAME).upload("", {
+            destination: "test-folder-unique/test-folder-1",
+        });
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ line 76 ~ createFolder ~ err", err);
+    }
+};
+
+module.exports = { getStores, getFiles, uploadFile, getDownloadStream, createFolder };

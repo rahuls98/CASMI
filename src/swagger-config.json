@@ -1,0 +1,556 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CASMI APIs",
+        "description": "CASMI: Cloud Agnostic Storage Management Interface",
+        "version": "1.0"
+    },
+    "servers": [{ "url": "http://localhost:8000/api/v1" }],
+    "paths": {
+        "/files": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Files"],
+                "security": [{ "Bearer token": [] }],
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            }
+        },
+
+        "/files/{id}": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Files"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The file ID"
+                    }
+                ],
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            }
+        },
+
+        "/files/{id}/download": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Files"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The file ID"
+                    }
+                ]
+            }
+        },
+
+        "/files/upload": {
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Files"],
+                "security": [{ "Bearer token": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": { "type": "string", "format": "binary" },
+                                    "store_id": { "type": "integer" },
+                                    "destination": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/folders": {
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Folders"],
+                "security": [{ "Bearer token": [] }],
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            }
+        },
+
+        "/providers": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Providers"],
+                "security": [{ "Bearer token": [] }],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "providers": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "code": { "type": "string" },
+                                                    "public_name": { "type": "string" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Providers"],
+                "security": [{ "Bearer token": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": { "type": "string" },
+                                    "public_name": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created new provider.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "provider_id": { "type": "integer" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/providers/{id}": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Providers"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The provider ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "provider": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "code": { "type": "string" },
+                                                "public_name": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/spaces": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Spaces"],
+                "security": [{ "Bearer token": [] }],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "spaces": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "name": { "type": "string" },
+                                                    "provider_ids": {
+                                                        "type": "array",
+                                                        "items": { "type": "integer" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Spaces"],
+                "security": [{ "Bearer token": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string" },
+                                    "provider_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "minItems": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created new space.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "space_id": { "type": "integer" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/spaces/{id}": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Spaces"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The space ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "space": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "name": { "type": "string" },
+                                                "provider_ids": {
+                                                    "type": "array",
+                                                    "items": { "type": "integer" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/stores": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Stores"],
+                "security": [{ "Bearer token": [] }],
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            },
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Stores"],
+                "security": [{ "Bearer token": [] }]
+            }
+        },
+
+        "/stores/{id}": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Stores"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The store ID"
+                    }
+                ],
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            }
+        },
+
+        "/users/login": {
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Users"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": { "type": "string" },
+                                    "password": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Success" }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "Bearer token": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

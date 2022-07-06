@@ -1,6 +1,6 @@
 const azureClient = require("../clients/azure.client");
-const { AZURE_CONFIG } = require("../../config");
-const errorLogger = require("../helpers/error_logger");
+const { AZURE_CONFIG } = require("../../../config");
+const errorLogger = require("../../helpers/error_logger");
 
 const {
     StorageSharedKeyCredential,

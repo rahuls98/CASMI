@@ -1,5 +1,5 @@
 const { S3Client } = require("@aws-sdk/client-s3");
-const { AWS_CONFIG } = require("../../config");
+const { AWS_CONFIG } = require("../../../config");
 
 module.exports = new S3Client({
     region: AWS_CONFIG.REGION,

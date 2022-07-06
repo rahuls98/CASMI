@@ -7,8 +7,8 @@ const {
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const awsClient = require("../clients/aws.client");
-const { AWS_CONFIG } = require("../../config");
-const errorLogger = require("../helpers/error_logger");
+const { AWS_CONFIG } = require("../../../config");
+const errorLogger = require("../../helpers/error_logger");
 
 const getStores = async () => {
     try {
@@ -51,11 +51,11 @@ const uploadFile = async (fileName, filePath) => {
     }
 };
 
-const getPresignedUrl = async () => {
+const getPresignedUrl = async (key) => {
     try {
         const params = {
             Bucket: AWS_CONFIG.BUCKET_NAME,
-            Key: ".gitignore",
+            Key: key,
             Body: "BODY",
         };
         const command = new GetObjectCommand(params);
@@ -68,11 +68,11 @@ const getPresignedUrl = async () => {
     }
 };
 
-const getDownloadStream = async () => {
+const getDownloadStream = async (key) => {
     try {
         const params = {
             Bucket: AWS_CONFIG.BUCKET_NAME,
-            Key: "AWS-Test/",
+            Key: key,
             Body: "BODY",
         };
         let filestream = await awsClient.send(new GetObjectCommand(params));
@@ -82,4 +82,23 @@ const getDownloadStream = async () => {
     }
 };
 
-module.exports = { getStores, getFiles, uploadFile, getDownloadStream, getPresignedUrl };
+const createFolder = async () => {
+    try {
+        const params = {
+            Bucket: AWS_CONFIG.BUCKET_NAME,
+            Key: "test-folder/nested-folder/",
+        };
+        await awsClient.send(new PutObjectCommand(params));
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: aws.utils.js ~ createFolder ~ err", err);
+    }
+};
+
+module.exports = {
+    getStores,
+    getFiles,
+    uploadFile,
+    getDownloadStream,
+    getPresignedUrl,
+    createFolder,
+};

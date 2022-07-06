@@ -1,54 +1,71 @@
-const awsUtils = require("../../utils/aws.utils");
-const azureUtils = require("../../utils/azure.utils");
-const gcpUtils = require("../../utils/gcp.utils");
-
-const getFiles = async (req, res) => {
-    const awsFiles = await awsUtils.getFiles();
-    const azureFiles = await azureUtils.getFiles();
-    const gcpFiles = await gcpUtils.getFiles();
-    const response = {
-        success: true,
-        data: {
-            files: {
-                aws: awsFiles,
-                azure: azureFiles,
-                gcp: gcpFiles,
-            },
-        },
-    };
-    res.header("Content-Type", "application/json");
-    res.send(JSON.stringify(response, null, 4));
-};
+const filesModel = require("../files/models");
+const foldersModel = require("../folders/models");
+const storesModel = require("../stores/models");
+const providerUtils = require("../../providers");
+const errorLogger = require("../../helpers/error_logger");
 
 const uploadFile = async (req, res) => {
-    const fileName = req.file.originalname;
-    const filePath = req.file.path;
-    switch (req.body.cloud) {
-        case "aws":
-            await awsUtils.uploadFile(fileName, filePath);
-            break;
-        case "azure":
-            await azureUtils.uploadFile(fileName, filePath);
-            break;
-        case "gcp":
-            await gcpUtils.uploadFile(fileName, filePath);
-            break;
+    try {
+        let folderCreateResponse, folderId;
+        const storeId = req.body.store_id;
+        const source = req.file.path;
+        const destinationFolder = req.body.destination;
+        const destination = destinationFolder.slice(1) + req.file.originalname;
+        const readProviderCodeResponse = await storesModel.readProviderCode(storeId);
+        const providerCode = readProviderCodeResponse[0]["provider_code"];
+        const utils = providerUtils.getUtils(providerCode);
+        await utils.uploadFile(destination, source);
+        const readFolderResponse = await foldersModel.readByProviderKey(destinationFolder);
+        const readStoreResponse = await storesModel.readById(storeId);
+        if (readFolderResponse.length === 0) {
+            folderCreateResponse = await foldersModel.create({
+                providerKey: destinationFolder,
+                storeId: storeId,
+                spaceId: readStoreResponse[0]["space_id"],
+                providerId: readStoreResponse[0]["provider_id"],
+            });
+            folderId = folderCreateResponse["insertId"];
+        } else {
+            folderId = readFolderResponse[0]["id"];
+        }
+        await filesModel.create({
+            name: req.file.originalname,
+            size: req.file.size,
+            providerKey: destination,
+            folderId: folderId,
+            storeId: storeId,
+            spaceId: readStoreResponse[0]["space_id"],
+            provider_id: readStoreResponse[0]["provider_id"],
+        });
+        await storesModel.updateFileCount(storeId);
+        res.send({ success: true });
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: controllers.js ~ uploadFile ~ err", err);
     }
-    res.send({ success: true });
 };
 
 const downloadFile = async (req, res) => {
-    //awsUtils.downloadFile();
-    //gcpUtils.downloadFile();
-    //azureUtils.downloadFile();
-    //res.attachment(".gitignore");
-    awsUtils.getPresignedUrl();
-    //res.set("Cache-Control", "no-store");
-    res.send({ msg: "OK" });
-    //let downloadStream = await awsUtils.getDownloadStream();
-    //let downloadStream = await azureUtils.getDownloadStream();
-    //let downloadStream = await gcpUtils.getDownloadStream();
-    //downloadStream.pipe(res);
+    try {
+        const fileId = req.params.id;
+        const readProviderCodeResponse = await filesModel.readProviderCode(fileId);
+        const providerCode = readProviderCodeResponse[0]["provider_code"];
+        const utils = providerUtils.getUtils(providerCode);
+        const readFileResponse = await filesModel.readById(fileId);
+        const providerKey = readFileResponse[0]["provider_key"];
+        if (req.accessClaim === "user") {
+            let downloadStream = await utils.getDownloadStream(providerKey);
+            res.attachment(readFileResponse[0]["name"]);
+            downloadStream.pipe(res);
+        } else if (req.accessClaim === "guest") {
+            const preSignedUrl = utils.getPresignedUrl(providerKey);
+            res.send({
+                success: true,
+                download_link: preSignedUrl,
+            });
+        }
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: controllers.js ~ downloadFile ~ err", err);
+    }
 };
 
-module.exports = { getFiles, uploadFile, downloadFile };
+module.exports = { uploadFile, downloadFile };

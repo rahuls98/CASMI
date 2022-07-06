@@ -2,10 +2,10 @@
 
 const firebaseAdmin = require("firebase-admin");
 const { FIREBASE_CONFIG } = require("../../config");
-var serviceAccount = require(FIREBASE_CONFIG.SERVICE_ACCOUNT_KEY_FILE);
+const errorLogger = require("../helpers/error_logger");
 
 firebaseAdmin.initializeApp({
-    credential: firebaseAdmin.credential.cert(serviceAccount),
+    credential: firebaseAdmin.credential.cert(FIREBASE_CONFIG.FIREBASE_SA_CREDENTIALS),
 });
 
 const listUsers = () => {
@@ -43,7 +43,7 @@ const verifyUser = async (idToken) => {
         let claims = await firebaseAdmin.auth().verifyIdToken(idToken);
         return claims.access;
     } catch (err) {
-        console.log("DEBUG LOG ~ file: admin.auth.js ~ verifyUser ~ err", err);
+        errorLogger("DEBUG LOG ~ file: admin.auth.js ~ verifyUser ~ err", err);
     }
 };
 
