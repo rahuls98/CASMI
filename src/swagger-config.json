@@ -14,7 +14,51 @@
                 "tags": ["Files"],
                 "security": [{ "Bearer token": [] }],
                 "responses": {
-                    "200": { "description": "Success" }
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "files": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "name": { "type": "string" },
+                                                    "size": { "type": "integer" },
+                                                    "provider_key": { "type": "string" },
+                                                    "folder_id": { "type": "integer" },
+                                                    "store_id": { "type": "integer" },
+                                                    "space_id": { "type": "integer" },
+                                                    "space": { "type": "string" },
+                                                    "provider_id": { "type": "integer" },
+                                                    "provider": { "type": "string" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -37,7 +81,62 @@
                     }
                 ],
                 "responses": {
-                    "200": { "description": "Success" }
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "file": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "name": { "type": "string" },
+                                                "size": { "type": "integer" },
+                                                "provider_key": { "type": "string" },
+                                                "folder_id": { "type": "integer" },
+                                                "store_id": { "type": "integer" },
+                                                "space_id": { "type": "integer" },
+                                                "space": { "type": "string" },
+                                                "provider_id": { "type": "integer" },
+                                                "provider": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -87,13 +186,129 @@
         },
 
         "/folders": {
-            "post": {
+            "get": {
                 "summary": "Summary",
                 "description": "Description",
                 "tags": ["Folders"],
                 "security": [{ "Bearer token": [] }],
                 "responses": {
-                    "200": { "description": "Success" }
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "folders": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "provider_key": { "type": "string" },
+                                                    "store_id": { "type": "integer" },
+                                                    "space_id": { "type": "integer" },
+                                                    "space": { "type": "string" },
+                                                    "provider_id": { "type": "integer" },
+                                                    "provider": { "type": "string" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/folders/{id}": {
+            "get": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Folders"],
+                "security": [{ "Bearer token": [] }],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The folder ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "folder": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "provider_key": { "type": "string" },
+                                                "store_id": { "type": "integer" },
+                                                "space_id": { "type": "integer" },
+                                                "space": { "type": "string" },
+                                                "provider_id": { "type": "integer" },
+                                                "provider": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -501,7 +716,9 @@
                                                     "id": { "type": "integer" },
                                                     "file_count": { "type": "integer" },
                                                     "space_id": { "type": "integer" },
-                                                    "provider_id": { "type": "integer" }
+                                                    "space": { "type": "string" },
+                                                    "provider_id": { "type": "integer" },
+                                                    "provider": { "type": "string" }
                                                 }
                                             }
                                         }
@@ -566,7 +783,9 @@
                                                 "id": { "type": "integer" },
                                                 "file_count": { "type": "integer" },
                                                 "space_id": { "type": "integer" },
-                                                "provider_id": { "type": "integer" }
+                                                "space": { "type": "string" },
+                                                "provider_id": { "type": "integer" },
+                                                "provider": { "type": "string" }
                                             }
                                         }
                                     }

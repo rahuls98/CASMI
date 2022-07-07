@@ -4,6 +4,40 @@ const storesModel = require("../stores/models");
 const providerUtils = require("../../providers");
 const errorLogger = require("../../helpers/error_logger");
 
+const readFiles = async (req, res) => {
+    try {
+        const readFilesResponse = await filesModel.read();
+        const response = { success: true, files: readFilesResponse };
+        res.header("Content-Type", "application/json");
+        res.status(200).send(JSON.stringify(response, null, 4));
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: controllers.js ~ readFiles ~ err", err);
+        const response = { success: false, message: err.message };
+        res.header("Content-Type", "application/json");
+        res.status(500).send(JSON.stringify(response, null, 4));
+    }
+};
+
+const readFileById = async (req, res) => {
+    try {
+        const readFileResponse = await filesModel.readById(req.params.id);
+        if (readFileResponse.length == 0) {
+            const response = { success: false, message: "No such file!" };
+            res.header("Content-Type", "application/json");
+            res.status(400).send(JSON.stringify(response, null, 4));
+        } else {
+            const response = { success: true, file: readFileResponse[0] };
+            res.header("Content-Type", "application/json");
+            res.status(200).send(JSON.stringify(response, null, 4));
+        }
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: controllers.js ~ readFileById ~ err", err);
+        const response = { success: false, message: err.message };
+        res.header("Content-Type", "application/json");
+        res.status(500).send(JSON.stringify(response, null, 4));
+    }
+};
+
 const uploadFile = async (req, res) => {
     try {
         let folderCreateResponse, folderId;
@@ -68,4 +102,4 @@ const downloadFile = async (req, res) => {
     }
 };
 
-module.exports = { uploadFile, downloadFile };
+module.exports = { readFiles, readFileById, uploadFile, downloadFile };

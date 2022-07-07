@@ -5,6 +5,8 @@ const multerMiddleware = require("../../middlewares/multer.middleware");
 const bodyParser = require("body-parser");
 const controllers = require("./controllers");
 
+router.get("/", controllers.readFiles);
+router.get("/:id", controllers.readFileById);
 router.post("/upload", multerMiddleware.single("file"), bodyParser.json(), controllers.uploadFile);
 router.get("/:id/download", iamMiddleware.verifyAccess([]), controllers.downloadFile);
 

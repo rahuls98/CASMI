@@ -1,8 +1,24 @@
 const dbConnection = require("../../db");
 
 const create = (data) => {
-    const query = `INSERT INTO files (name, size, provider_key, folder_id, store_id, space_id, provider_id) 
-    VALUES ('${data.name}', ${data.size}, '${data.providerKey}', ${data.folderId}, ${data.storeId}, ${data.spaceId}, ${data.provider_id});`;
+    const query = `
+    INSERT INTO files (name, size, provider_key, folder_id, store_id, space_id, provider_id) 
+    VALUES ('${data.name}', ${data.size}, '${data.providerKey}', ${data.folderId}, ${data.storeId}, ${data.spaceId}, ${data.provider_id})
+    ;`;
+    return new Promise((resolve, reject) => {
+        dbConnection.execute(query, (err, res) => {
+            if (err) reject(err);
+            resolve(res);
+        });
+    });
+};
+
+const read = () => {
+    const query = `
+    SELECT files.id, files.name, files.size, files.provider_key, files.folder_id, files.store_id, files.space_id, spaces.name AS space, files.provider_id, providers.public_name AS provider 
+    FROM files INNER JOIN spaces INNER JOIN providers 
+    ON files.space_id=spaces.id AND files.provider_id=providers.id
+    ;`;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
@@ -12,7 +28,12 @@ const create = (data) => {
 };
 
 const readById = (fileId) => {
-    const query = `SELECT * FROM files WHERE id=${fileId};`;
+    const query = `
+    SELECT files.id, files.name, files.size, files.provider_key, files.folder_id, files.store_id, files.space_id, spaces.name AS space, files.provider_id, providers.public_name AS provider 
+    FROM files INNER JOIN spaces INNER JOIN providers 
+    ON files.space_id=spaces.id AND files.provider_id=providers.id 
+    WHERE files.id=${fileId}
+    ;`;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
@@ -22,8 +43,10 @@ const readById = (fileId) => {
 };
 
 const readProviderCode = (fileId) => {
-    const query = `SELECT providers.code AS provider_code FROM files INNER JOIN providers 
-    ON files.provider_id=providers.id WHERE files.id=${fileId};`;
+    const query = `
+    SELECT providers.code AS provider_code FROM files INNER JOIN providers 
+    ON files.provider_id=providers.id WHERE files.id=${fileId}
+    ;`;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
@@ -32,4 +55,4 @@ const readProviderCode = (fileId) => {
     });
 };
 
-module.exports = { create, readById, readProviderCode };
+module.exports = { create, read, readById, readProviderCode };

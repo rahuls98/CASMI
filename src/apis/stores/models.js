@@ -14,7 +14,11 @@ const create = (storeData) => {
 };
 
 const read = () => {
-    const query = `SELECT * FROM stores;`;
+    const query = `
+    SELECT stores.id, stores.file_count, stores.space_id, spaces.name AS space, stores.provider_id, providers.public_name AS provider 
+    FROM stores INNER JOIN spaces INNER JOIN providers 
+    ON stores.space_id=spaces.id AND stores.provider_id=providers.id;
+    `;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
@@ -24,7 +28,12 @@ const read = () => {
 };
 
 const readById = (storeId) => {
-    const query = `SELECT * FROM stores WHERE id=${storeId};`;
+    const query = `
+    SELECT stores.id, stores.file_count, stores.space_id, spaces.name AS space, stores.provider_id, providers.public_name AS provider 
+    FROM stores INNER JOIN spaces INNER JOIN providers 
+    ON stores.space_id=spaces.id AND stores.provider_id=providers.id 
+    WHERE stores.id=${storeId};
+    `;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
