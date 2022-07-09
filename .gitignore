@@ -1,6 +1,6 @@
 # files
-.DS_Store
 .env
+.DS_Store
 firebase.config.js
 
 # folders
