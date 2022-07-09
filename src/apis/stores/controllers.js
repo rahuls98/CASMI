@@ -16,7 +16,14 @@ const readStores = async (req, res) => {
 };
 
 const readStoreById = async (req, res) => {
+    const inputIsValid = () => !!Number(req.params.id);
     try {
+        if (!inputIsValid()) {
+            const response = { success: false, message: "Invalid store id!" };
+            res.header("Content-Type", "application/json");
+            res.status(400).send(JSON.stringify(response, null, 4));
+            return;
+        }
         const readStoreResponse = await storesModel.readById(req.params.id);
         if (readStoreResponse.length == 0) {
             const response = { success: false, message: "No such store!" };

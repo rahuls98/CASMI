@@ -3,7 +3,7 @@ const dbConnection = require("../../db");
 const create = (providerData) => {
     const query = `
     INSERT INTO providers (code, public_name) 
-    VALUES ('${providerData.providerCode}', '${providerData.providerPublicName}')
+    VALUES ('${providerData.code}', '${providerData.publicName}')
     ;`;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
@@ -33,4 +33,15 @@ const readById = (providerId) => {
     });
 };
 
-module.exports = { create, read, readById };
+const readCountByIds = (providerIds) => {
+    let stringifiedIds = providerIds.join(",");
+    const query = `SELECT COUNT(*) AS count FROM providers WHERE id IN (${stringifiedIds});`;
+    return new Promise((resolve, reject) => {
+        dbConnection.execute(query, (err, res) => {
+            if (err) reject(err);
+            resolve(res);
+        });
+    });
+};
+
+module.exports = { create, read, readById, readCountByIds };

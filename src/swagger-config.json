@@ -157,7 +157,23 @@
                         },
                         "description": "The file ID"
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "download_link": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
 
@@ -177,6 +193,22 @@
                                     "file": { "type": "string", "format": "binary" },
                                     "store_id": { "type": "integer" },
                                     "destination": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created new file.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "file_id": { "type": "integer" }
+                                    }
                                 }
                             }
                         }
@@ -519,9 +551,9 @@
                                                 "properties": {
                                                     "id": { "type": "integer" },
                                                     "name": { "type": "string" },
-                                                    "provider_ids": {
+                                                    "providers": {
                                                         "type": "array",
-                                                        "items": { "type": "integer" }
+                                                        "items": { "type": "strin" }
                                                     }
                                                 }
                                             }
@@ -566,7 +598,9 @@
                                             "type": "integer"
                                         },
                                         "minItems": 1
-                                    }
+                                    },
+                                    "default_secrets": { "type": "boolean" },
+                                    "secrets": { "type": "object" }
                                 }
                             }
                         }
@@ -650,9 +684,9 @@
                                             "properties": {
                                                 "id": { "type": "integer" },
                                                 "name": { "type": "string" },
-                                                "provider_ids": {
+                                                "providers": {
                                                     "type": "array",
-                                                    "items": { "type": "integer" }
+                                                    "items": { "type": "strin" }
                                                 }
                                             }
                                         }
@@ -742,12 +776,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "summary": "Summary",
-                "description": "Description",
-                "tags": ["Stores"],
-                "security": [{ "Bearer token": [] }]
             }
         },
 
@@ -825,6 +853,82 @@
             }
         },
 
+        "/users/": {
+            "post": {
+                "summary": "Summary",
+                "description": "Description",
+                "tags": ["Users"],
+                "security": [{ "Bearer token": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": { "type": "string" },
+                                    "password": { "type": "string" },
+                                    "name": { "type": "string" },
+                                    "user_type": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "store": {
+                                            "type": "object",
+                                            "properties": {
+                                                "uid": { "type": "integer" },
+                                                "name": { "type": "string" },
+                                                "username": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
         "/users/login": {
             "post": {
                 "summary": "Summary",
@@ -837,7 +941,7 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "email": { "type": "string" },
+                                    "username": { "type": "string" },
                                     "password": { "type": "string" }
                                 }
                             }
@@ -845,7 +949,56 @@
                     }
                 },
                 "responses": {
-                    "200": { "description": "Success" }
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "store": {
+                                            "type": "object",
+                                            "properties": {
+                                                "uid": { "type": "integer" },
+                                                "name": { "type": "string" },
+                                                "username": { "type": "string" },
+                                                "id_token": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Client error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": { "type": "boolean" },
+                                        "message": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

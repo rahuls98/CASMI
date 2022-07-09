@@ -2,22 +2,35 @@
 
 const firebaseAuth = require("@firebase/auth");
 const firebaseApp = require("@firebase/app");
-const { FIREBASE_CONFIG } = require("../../config");
+const firebaseConfig = require("../../firebase.config");
+const errorLogger = require("../helpers/error_logger");
 
-const app = firebaseApp.initializeApp(FIREBASE_CONFIG.WEB_APP_CONFIG);
+const app = firebaseApp.initializeApp(firebaseConfig.FIREBASE.CLIENT);
 const auth = firebaseAuth.getAuth(app);
 
-const signIn = async (userData) => {
+const loginUser = async (userData) => {
     try {
-        const response = await firebaseAuth.signInWithEmailAndPassword(
+        const signInResponse = await firebaseAuth.signInWithEmailAndPassword(
             auth,
             userData.email,
             userData.password
         );
-        return response;
+        return {
+            success: true,
+            data: {
+                uid: signInResponse.user.uid,
+                name: signInResponse.user.displayName,
+                username: signInResponse.user.email,
+                id_token: signInResponse._tokenResponse.idToken,
+            },
+        };
     } catch (err) {
-        console.log("DEBUG LOG ~ file: client.auth.js ~ signIn ~ err", err);
+        errorLogger("DEBUG LOG ~ file: client.auth.js ~ signIn ~ err", err);
+        return {
+            success: false,
+            message: err.message,
+        };
     }
 };
 
-module.exports = { signIn };
+module.exports = { loginUser };

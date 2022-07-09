@@ -1,80 +1,79 @@
+const { Storage } = require("@google-cloud/storage");
 const stream = require("stream");
-const gcpClient = require("../clients/gcp.client");
-const { GCP_CONFIG } = require("../../../config");
 const errorLogger = require("../../helpers/error_logger");
+const { vault, appRoleConfig } = require("../../vault");
 
-const getStores = async () => {
-    try {
-        const [buckets] = await gcpClient.getBuckets();
-        let stores = [];
-        for (let store of buckets) {
-            stores.push(store.name);
-        }
-        return stores;
-    } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getStores ~ err", err);
-    }
+const getStorageClient = (config) => {
+    return new Storage({
+        credentials: config["SERVICE_ACCOUNT_CREDENTIALS"],
+        projectId: config["PROJECT_ID"],
+    });
 };
 
-const getFiles = async () => {
+const createStore = async (vaultKey, storeName) => {
     try {
-        const [files] = await gcpClient.bucket(GCP_CONFIG.BUCKET_NAME).getFiles();
-        let fileNames = [];
-        for (let file of files) {
-            fileNames.push(file.name);
-        }
-        return fileNames;
-    } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getFiles ~ err", err);
-    }
-};
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.GCP);
 
-const uploadFile = async (fileName, filePath) => {
-    try {
-        await gcpClient.bucket(GCP_CONFIG.BUCKET_NAME).upload(filePath, {
-            destination: fileName,
+        const [bucket] = await storageClient.createBucket(storeName, {
+            location: "asia-south1",
+            storageClass: "Standard",
         });
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ uploadFile ~ err", err);
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ createStore ~ err", err);
     }
 };
 
-const getPresignedUrl = async () => {
-    const options = {
-        version: "v4",
-        action: "read",
-        //expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-        expires: Date.now() + 20 * 1000, // 20 seconds
-    };
-
-    const [url] = await gcpClient
-        .bucket(GCP_CONFIG.BUCKET_NAME)
-        .file(".gitignore")
-        .getSignedUrl(options);
-
-    console.log("Generated GET signed URL:");
-    console.log(url);
-};
-
-const getDownloadStream = async () => {
-    let filestream = await gcpClient
-        .bucket(GCP_CONFIG.BUCKET_NAME)
-        .file(".gitignore")
-        .createReadStream();
-
-    const dataStream = new stream.PassThrough();
-    filestream.pipe(dataStream);
-    return dataStream;
-};
-
-const createFolder = async () => {
+const getDownloadStream = async (vaultKey, storeName, sourceKey) => {
     try {
-        await gcpClient.bucket(GCP_CONFIG.BUCKET_NAME).upload("", {
-            destination: "test-folder-unique/test-folder-1",
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.GCP);
+
+        let filestream = await storageClient.bucket(storeName).file(sourceKey).createReadStream();
+        const dataStream = new stream.PassThrough();
+        filestream.pipe(dataStream);
+        return dataStream;
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getDownloadStream ~ err", err);
+    }
+};
+
+const getSignedUrl = async (vaultKey, storeName, sourceKey) => {
+    try {
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.GCP);
+
+        const options = {
+            version: "v4",
+            action: "read",
+            expires: Date.now() + 20 * 1000, // 20 seconds
+        };
+        const [url] = await storageClient.bucket(storeName).file(sourceKey).getSignedUrl(options);
+        return url;
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ getSignedUrl ~ err", err);
+    }
+};
+
+const putFile = async (vaultKey, storeName, destinationKey, sourcePath) => {
+    try {
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.GCP);
+
+        await storageClient.bucket(storeName).upload(sourcePath, {
+            destination: destinationKey,
         });
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ line 76 ~ createFolder ~ err", err);
+        errorLogger("DEBUG LOG ~ file: gcp.utils.js ~ putFile ~ err", err);
     }
 };
 
-module.exports = { getStores, getFiles, uploadFile, getDownloadStream, createFolder };
+module.exports = { createStore, getDownloadStream, getSignedUrl, putFile };

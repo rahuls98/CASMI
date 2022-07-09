@@ -40,8 +40,8 @@ const readById = (folderId) => {
     });
 };
 
-const readByProviderKey = (providerKey) => {
-    const query = `SELECT * FROM folders WHERE provider_key='${providerKey}';`;
+const readByStoreProviderKey = (storeId, providerKey) => {
+    const query = `SELECT * FROM folders WHERE store_id=${storeId} AND provider_key='${providerKey}';`;
     return new Promise((resolve, reject) => {
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
@@ -50,4 +50,4 @@ const readByProviderKey = (providerKey) => {
     });
 };
 
-module.exports = { create, read, readById, readByProviderKey };
+module.exports = { create, read, readById, readByStoreProviderKey };

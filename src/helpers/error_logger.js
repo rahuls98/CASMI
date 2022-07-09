@@ -1,4 +1,4 @@
-const errorLogger = (turboTrace, err) => {
+module.exports = (turboTrace, err) => {
     console.log(`
         \n${turboTrace} ${err.name}
         \n${err.message}
@@ -6,5 +6,3 @@ const errorLogger = (turboTrace, err) => {
         \n /* ---------- */
     `);
 };
-
-module.exports = errorLogger;

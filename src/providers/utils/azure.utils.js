@@ -1,80 +1,88 @@
-const azureClient = require("../clients/azure.client");
-const { AZURE_CONFIG } = require("../../../config");
-const errorLogger = require("../../helpers/error_logger");
-
 const {
+    BlobServiceClient,
     StorageSharedKeyCredential,
     BlobSASPermissions,
     generateBlobSASQueryParameters,
 } = require("@azure/storage-blob");
+const errorLogger = require("../../helpers/error_logger");
+const { vault, appRoleConfig } = require("../../vault");
 
-const getStores = async () => {
+const getStorageClient = (config) => {
+    return BlobServiceClient.fromConnectionString((connectionString = config["CONNECTION_STRING"]));
+};
+
+const createStore = async (vaultKey, storeName) => {
     try {
-        const containers = azureClient.listContainers();
-        let stores = [];
-        for await (const container of containers) {
-            stores.push(container.name);
-        }
-        return stores;
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.AZR);
+
+        const containerClient = storageClient.getContainerClient(storeName);
+        const createContainerResponse = await containerClient.create();
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ getStores ~ err", err);
+        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ createStore ~ err", err);
     }
 };
 
-const getFiles = async () => {
+const getDownloadStream = async (vaultKey, storeName, sourceKey) => {
     try {
-        const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
-        let blobs = containerClient.listBlobsFlat();
-        let files = [];
-        for await (const blob of blobs) {
-            files.push(blob.name);
-        }
-        return files;
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.AZR);
+
+        const containerClient = storageClient.getContainerClient(storeName);
+        const blockBlobClient = containerClient.getBlockBlobClient(sourceKey);
+        const downloadBlockBlobResponse = await blockBlobClient.download(0);
+        return downloadBlockBlobResponse.readableStreamBody;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ getFiles ~ err", err);
+        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ getDownloadStream ~ err", err);
     }
 };
 
-const uploadFile = async (fileName, filePath) => {
+const getSignedUrl = async (vaultKey, storeName, sourceKey) => {
     try {
-        const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
-        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-        await blockBlobClient.uploadFile(filePath);
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.AZR);
+
+        const containerClient = storageClient.getContainerClient(storeName);
+        const blockBlobClient = containerClient.getBlockBlobClient(sourceKey);
+        const sharedKeyCredential = new StorageSharedKeyCredential(
+            data.data.AZR["STORAGE_ACCOUNT"],
+            data.data.AZR["AZURE_STORAGE_ACCESS_KEY"]
+        );
+        const sasToken = generateBlobSASQueryParameters(
+            {
+                containerName: storeName,
+                blobName: sourceKey,
+                expiresOn: new Date(Date.now() + 20 * 1000),
+                permissions: BlobSASPermissions.parse("racwd"),
+            },
+            sharedKeyCredential
+        );
+        const signedUrl = `${blockBlobClient.url}?${sasToken}`;
+        return signedUrl;
     } catch (err) {
-        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ uploadFile ~ err", err);
+        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ getDownloadStream ~ err", err);
     }
 };
 
-const getPresignedUrl = async () => {
-    const AZURE_STORAGE_ACCOUNT = AZURE_CONFIG.STORAGE_ACCOUNT;
-    const AZURE_STORAGE_ACCESS_KEY = AZURE_CONFIG.AZURE_STORAGE_ACCESS_KEY;
-    const sharedKeyCredential = new StorageSharedKeyCredential(
-        AZURE_STORAGE_ACCOUNT,
-        AZURE_STORAGE_ACCESS_KEY
-    );
+const putFile = async (vaultKey, storeName, destinationKey, sourcePath) => {
+    try {
+        const vaultLoginResponse = await vault.approleLogin(appRoleConfig);
+        vault.token = vaultLoginResponse.auth.client_token;
+        const { data } = await vault.read(vaultKey);
+        const storageClient = getStorageClient(data.data.AZR);
 
-    const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
-    const blockBlobClient = containerClient.getBlockBlobClient(".gitignore");
-    const sasToken = generateBlobSASQueryParameters(
-        {
-            containerName: AZURE_CONFIG.BUCKET_NAME,
-            blobName: ".gitignore",
-            expiresOn: new Date(Date.now() + 20 * 1000),
-            permissions: BlobSASPermissions.parse("racwd"),
-        },
-        sharedKeyCredential
-    );
-
-    const sasUrl = `${blockBlobClient.url}?${sasToken}`;
-
-    console.log(sasUrl);
+        const containerClient = storageClient.getContainerClient(storeName);
+        const blockBlobClient = containerClient.getBlockBlobClient(destinationKey);
+        await blockBlobClient.uploadFile(sourcePath);
+    } catch (err) {
+        errorLogger("DEBUG LOG ~ file: azure.utils.js ~ putFile ~ err", err);
+    }
 };
 
-const getDownloadStream = async () => {
-    const containerClient = azureClient.getContainerClient(AZURE_CONFIG.BUCKET_NAME);
-    const blockBlobClient = containerClient.getBlockBlobClient(".gitignore");
-    const downloadBlockBlobResponse = await blockBlobClient.download(0);
-    return downloadBlockBlobResponse.readableStreamBody;
-};
-
-module.exports = { getStores, getFiles, uploadFile, getDownloadStream };
+module.exports = { createStore, getDownloadStream, getSignedUrl, putFile };

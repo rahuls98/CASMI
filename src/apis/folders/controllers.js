@@ -16,7 +16,14 @@ const readFolders = async (req, res) => {
 };
 
 const readFolderById = async (req, res) => {
+    const inputIsValid = () => !!Number(req.params.id);
     try {
+        if (!inputIsValid()) {
+            const response = { success: false, message: "Invalid folder id!" };
+            res.header("Content-Type", "application/json");
+            res.status(400).send(JSON.stringify(response, null, 4));
+            return;
+        }
         const readFolderResponse = await foldersModel.readById(req.params.id);
         if (readFolderResponse.length == 0) {
             const response = { success: false, message: "No such folder!" };

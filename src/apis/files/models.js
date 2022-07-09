@@ -55,4 +55,19 @@ const readProviderCode = (fileId) => {
     });
 };
 
-module.exports = { create, read, readById, readProviderCode };
+const readSpaceProviderKey = (fileId) => {
+    const query = `
+    SELECT files.id, files.name as file, files.space_id, files.provider_key 
+    FROM files INNER JOIN spaces 
+    ON files.space_id=spaces.id 
+    WHERE files.id=${fileId}
+    ;`;
+    return new Promise((resolve, reject) => {
+        dbConnection.execute(query, (err, res) => {
+            if (err) reject(err);
+            resolve(res);
+        });
+    });
+};
+
+module.exports = { create, read, readById, readProviderCode, readSpaceProviderKey };

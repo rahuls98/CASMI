@@ -1,10 +1,23 @@
 const providersModel = require("./models");
 const errorLogger = require("../../helpers/error_logger");
+const validators = require("../../helpers/validators");
 
 const createProvider = async (req, res) => {
+    const inputIsValid = () => {
+        let requiredKeys = ["code", "public_name"];
+        let hasRequiredKeys = validators.hasKeys(req.body, requiredKeys);
+        if (
+            !hasRequiredKeys ||
+            !validators.isNonEmptyString(req.body.code) ||
+            !validators.isCorrectLength(req.body.code, 3, 3) ||
+            !validators.isNonEmptyString(req.body.public_name)
+        )
+            return false;
+        return true;
+    };
     try {
-        if (!req.body.code || !req.body.public_name) {
-            const response = { success: false, message: "Insufficient provider data!" };
+        if (!inputIsValid()) {
+            const response = { success: false, message: "Insufficient/Invalid provider data!" };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
         } else {
@@ -37,7 +50,14 @@ const readProviders = async (req, res) => {
 };
 
 const readProviderById = async (req, res) => {
+    const inputIsValid = () => !!Number(req.params.id);
     try {
+        if (!inputIsValid()) {
+            const response = { success: false, message: "Invalid provider id!" };
+            res.header("Content-Type", "application/json");
+            res.status(400).send(JSON.stringify(response, null, 4));
+            return;
+        }
         const readProviderResponse = await providersModel.readById(req.params.id);
         if (readProviderResponse.length == 0) {
             const response = { success: false, message: "No such provider!" };
