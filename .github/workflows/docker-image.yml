@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  build:
+  push-image-to-docker-hub:
 
     runs-on: ubuntu-latest
 
@@ -21,10 +21,14 @@ jobs:
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+        
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
     
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag sureshrahul/casmi:$(date +%s)
+      run: docker build . --file Dockerfile --tag sureshrahul/casmi:${{ steps.date.outputs.date }}
       
-    - name: Docker Push
-      run: docker push sureshrahul/casmi
+    - name: Docker push
+      run: docker push sureshrahul/casmi:${{ steps.date.outputs.date }}
       
