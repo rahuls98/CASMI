@@ -10,6 +10,7 @@ const create = (folderData) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -25,6 +26,7 @@ const read = () => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -41,6 +43,7 @@ const readById = (folderId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -52,6 +55,7 @@ const readByStoreProviderKey = (storeId, providerKey) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 

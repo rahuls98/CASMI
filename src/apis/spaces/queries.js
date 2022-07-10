@@ -10,6 +10,7 @@ const create = (spaceData) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -28,6 +29,7 @@ const read = () => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -47,6 +49,7 @@ const readById = (spaceId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -58,6 +61,7 @@ const readByName = (spaceName) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -69,6 +73,7 @@ const associateProvider = (spaceId, providerId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -85,6 +90,7 @@ const readNameVaultKey = (spaceId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 

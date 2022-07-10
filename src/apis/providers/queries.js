@@ -12,6 +12,7 @@ const create = (providerData) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -23,6 +24,7 @@ const read = () => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -34,6 +36,7 @@ const readById = (providerId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -46,6 +49,7 @@ const readCountByIds = (providerIds) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 

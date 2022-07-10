@@ -12,6 +12,7 @@ const create = (data) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -27,6 +28,7 @@ const read = () => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -43,6 +45,7 @@ const readById = (fileId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -57,6 +60,7 @@ const readProviderCode = (fileId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -73,6 +77,7 @@ const readSpaceProviderKey = (fileId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
