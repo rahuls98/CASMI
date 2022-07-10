@@ -1,4 +1,5 @@
-const dbConnection = require("../../db");
+const mysql = require("mysql2");
+const { dbConfig } = require("../../db");
 
 const create = (data) => {
     const query = `
@@ -6,6 +7,7 @@ const create = (data) => {
     VALUES ('${data.name}', ${data.size}, '${data.providerKey}', ${data.folderId}, ${data.storeId}, ${data.spaceId}, ${data.provider_id})
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -20,6 +22,7 @@ const read = () => {
     ON files.space_id=spaces.id AND files.provider_id=providers.id
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -35,6 +38,7 @@ const readById = (fileId) => {
     WHERE files.id=${fileId}
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -48,6 +52,7 @@ const readProviderCode = (fileId) => {
     ON files.provider_id=providers.id WHERE files.id=${fileId}
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -63,6 +68,7 @@ const readSpaceProviderKey = (fileId) => {
     WHERE files.id=${fileId}
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);

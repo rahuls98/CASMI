@@ -1,9 +1,11 @@
-const dbConnection = require("../../db");
+const mysql = require("mysql2");
+const { dbConfig } = require("../../db");
 
 const create = (folderData) => {
     const query = `INSERT INTO folders (provider_key, store_id, space_id, provider_id) 
     VALUES ('${folderData.providerKey}', ${folderData.storeId}, ${folderData.spaceId}, '${folderData.providerId}');`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -18,6 +20,7 @@ const read = () => {
     ON folders.space_id=spaces.id AND folders.provider_id=providers.id
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -33,6 +36,7 @@ const readById = (folderId) => {
     WHERE folders.id=${folderId};
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -43,6 +47,7 @@ const readById = (folderId) => {
 const readByStoreProviderKey = (storeId, providerKey) => {
     const query = `SELECT * FROM folders WHERE store_id=${storeId} AND provider_key='${providerKey}';`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);

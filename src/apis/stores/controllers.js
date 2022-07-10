@@ -1,9 +1,10 @@
-const storesModel = require("./models");
+const storeQueries = require("./queries");
 const errorLogger = require("../../helpers/error_logger");
+const validators = require("../../helpers/validators");
 
 const readStores = async (req, res) => {
     try {
-        const readStoresResponse = await storesModel.read();
+        const readStoresResponse = await storeQueries.read();
         const response = { success: true, stores: readStoresResponse };
         res.header("Content-Type", "application/json");
         res.status(200).send(JSON.stringify(response, null, 4));
@@ -16,15 +17,22 @@ const readStores = async (req, res) => {
 };
 
 const readStoreById = async (req, res) => {
-    const inputIsValid = () => !!Number(req.params.id);
+    const validateInput = () => {
+        let requiredKeys = ["id"];
+        let hasRequiredKeys = validators.hasKeys(req.params, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
+        if (!Number(req.params.id)) return [false, "ID not a number!"];
+        return [true, ""];
+    };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Invalid store id!" };
+        const validateInputResponse = validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
             return;
         }
-        const readStoreResponse = await storesModel.readById(req.params.id);
+        const readStoreResponse = await storeQueries.readById(req.params.id);
         if (readStoreResponse.length == 0) {
             const response = { success: false, message: "No such store!" };
             res.header("Content-Type", "application/json");

@@ -4,39 +4,49 @@ const errorLogger = require("../../helpers/error_logger");
 const validators = require("../../helpers/validators");
 const { vault, appRoleConfig } = require("../../vault");
 const { getUtils } = require("../../providers");
-const foldersModel = require("../folders/models");
-const providersModel = require("../providers/models");
-const spacesModel = require("./models");
-const secretsModel = require("../secrets/models");
-const storesModel = require("../stores/models");
+const folderQueries = require("../folders/queries");
+const providerQueries = require("../providers/queries");
+const spaceQueries = require("./queries");
+const secretQueries = require("../secrets/queries");
+const storeQueries = require("../stores/queries");
 
 const createSpace = async (req, res) => {
-    const inputIsValid = async () => {
+    const validateInput = async () => {
         let requiredKeys = ["name", "provider_ids", "default_secrets", "secrets"];
         let hasRequiredKeys = validators.hasKeys(req.body, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
         if (
-            !hasRequiredKeys ||
             !validators.isNonEmptyString(req.body.name) ||
             !validators.isNonEmptyArray(req.body.provider_ids) ||
             !validators.isBoolean(req.body.default_secrets) ||
             !validators.isObject(req.body.secrets)
         )
-            return false;
-        const readCountResponse = await providersModel.readCountByIds(req.body.provider_ids);
-        if (readCountResponse[0]["count"] !== req.body.provider_ids.length) return false;
+            return [false, "Invalid space data!"];
+        const readCountResponse = await providerQueries.readCountByIds(req.body.provider_ids);
+        if (readCountResponse[0]["count"] !== req.body.provider_ids.length)
+            return [false, "Invalid providers!"];
         if (!req.body.default_secrets && !validators.isNonEmptyObject(req.body.secrets))
-            return false;
-        return true;
+            return [false, "Custom secrets not provided!"];
+        return [true, ""];
     };
     try {
-        if (!(await inputIsValid())) {
-            const response = { success: false, message: "Insufficient/Invalid space data!" };
+        const validateInputResponse = await validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
         } else {
             const spaceName = req.body.name;
+            // Check if space exists
+            const readSpaceByNameResponse = await spaceQueries.readByName(spaceName);
+            if (readSpaceByNameResponse.length != 0) {
+                const response = { success: false, message: "Space already exists!" };
+                res.header("Content-Type", "application/json");
+                res.status(400).send(JSON.stringify(response, null, 4));
+                return;
+            }
             // Associate default secret
-            const readSecretResponse = await secretsModel.readById(
+            const readSecretResponse = await secretQueries.readById(
                 process.env.CASMI_DEFAULT_SECRETS_ID
             );
             let secretId = readSecretResponse[0]["id"];
@@ -47,7 +57,7 @@ const createSpace = async (req, res) => {
                 vault.token = vaultLoginResponse.auth.client_token;
                 const vaultKey = `${process.env.CASMI_SECRETS_PREFIX}/${spaceName}`;
                 await vault.write(vaultKey, { data: req.body.secrets });
-                const createSecretResponse = await secretsModel.create({
+                const createSecretResponse = await secretQueries.create({
                     name: spaceName,
                     vaultKey: vaultKey,
                 });
@@ -55,7 +65,7 @@ const createSpace = async (req, res) => {
                 secretVaultKey = vaultKey;
             }
             // Create space
-            const createSpaceResponse = await spacesModel.create({
+            const createSpaceResponse = await spaceQueries.create({
                 name: spaceName,
                 secretId: secretId,
             });
@@ -63,19 +73,19 @@ const createSpace = async (req, res) => {
             // For each provider -> create association, store, and root folder
             let associateProviderResponse, utils, createStoreResponse, createFolderResponse;
             for (let providerId of req.body.provider_ids) {
-                associateProviderResponse = await spacesModel.associateProvider(
+                associateProviderResponse = await spaceQueries.associateProvider(
                     spaceId,
                     providerId
                 );
-                const readProviderResponse = await providersModel.readById(providerId);
+                const readProviderResponse = await providerQueries.readById(providerId);
                 utils = getUtils(readProviderResponse[0]["code"]);
                 await utils.createStore(secretVaultKey, spaceName);
-                createStoreResponse = await storesModel.create({
+                createStoreResponse = await storeQueries.create({
                     name: req.body.name,
                     space_id: spaceId,
                     provider_id: providerId,
                 });
-                createFolderResponse = await foldersModel.create({
+                createFolderResponse = await folderQueries.create({
                     providerKey: "/",
                     storeId: createStoreResponse["insertId"],
                     spaceId: spaceId,
@@ -96,7 +106,7 @@ const createSpace = async (req, res) => {
 
 const readSpaces = async (req, res) => {
     try {
-        const readSpacesResponse = await spacesModel.read();
+        const readSpacesResponse = await spaceQueries.read();
         for (let space of readSpacesResponse) {
             space["providers"] = space["providers"].split("|");
         }
@@ -112,15 +122,22 @@ const readSpaces = async (req, res) => {
 };
 
 const readSpaceById = async (req, res) => {
-    const inputIsValid = () => !!Number(req.params.id);
+    const validateInput = () => {
+        let requiredKeys = ["id"];
+        let hasRequiredKeys = validators.hasKeys(req.params, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
+        if (!Number(req.params.id)) return [false, "ID not a number!"];
+        return [true, ""];
+    };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Invalid space id!" };
+        const validateInputResponse = validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
             return;
         }
-        const readSpaceResponse = await spacesModel.readById(req.params.id);
+        const readSpaceResponse = await spaceQueries.readById(req.params.id);
         if (readSpaceResponse.length == 0) {
             const response = { success: false, message: "No such space!" };
             res.header("Content-Type", "application/json");

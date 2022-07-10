@@ -1,12 +1,15 @@
 const express = require("express");
 const app = express();
+
+// Swagger
 const swaggerUi = require("swagger-ui-express");
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(require("../swagger-config.js")));
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(require("./swagger-config.json")));
-
+// CASMI routes
 app.use("/api/v1/files", require("./apis/files/routes"));
 app.use("/api/v1/folders", require("./apis/folders/routes"));
 app.use("/api/v1/providers", require("./apis/providers/routes"));
+app.use("/api/v1/secrets", require("./apis/secrets/routes"));
 app.use("/api/v1/spaces", require("./apis/spaces/routes"));
 app.use("/api/v1/stores", require("./apis/stores/routes"));
 app.use("/api/v1/users", require("./apis/users/routes"));

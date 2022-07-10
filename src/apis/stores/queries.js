@@ -1,4 +1,5 @@
-const dbConnection = require("../../db");
+const mysql = require("mysql2");
+const { dbConfig } = require("../../db");
 
 const create = (storeData) => {
     const query = `
@@ -6,6 +7,7 @@ const create = (storeData) => {
     VALUES (0, ${storeData.space_id}, ${storeData.provider_id})
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -20,6 +22,7 @@ const read = () => {
     ON stores.space_id=spaces.id AND stores.provider_id=providers.id;
     `;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -35,6 +38,7 @@ const readById = (storeId) => {
     WHERE stores.id=${storeId};
     `;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -48,6 +52,7 @@ const readProviderCode = (storeId) => {
     ON stores.provider_id=providers.id WHERE stores.id=${storeId}
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -58,6 +63,7 @@ const readProviderCode = (storeId) => {
 const updateFileCount = (storeId) => {
     const query = `UPDATE stores SET file_count=file_count+1 WHERE id=${storeId};`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);

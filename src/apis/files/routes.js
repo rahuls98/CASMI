@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const iamMiddleware = require("../../middlewares/iam.middleware");
-const multerMiddleware = require("../../middlewares/multer.middleware");
 const bodyParser = require("body-parser");
 const controllers = require("./controllers");
 
@@ -14,7 +13,6 @@ router.get(
 router.post(
     "/upload",
     iamMiddleware.verifyAccess(["admin", "user"]),
-    multerMiddleware.single("file"),
     bodyParser.json(),
     controllers.uploadFile
 );
