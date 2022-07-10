@@ -4,24 +4,25 @@ const errorLogger = require("../../helpers/error_logger");
 const validators = require("../../helpers/validators");
 
 const createUser = async (req, res) => {
-    const inputIsValid = () => {
+    const validateInput = () => {
         let requiredKeys = ["username", "password", "name", "user_type"];
         let allowedUserTypes = ["admin", "user", "guest"];
         let hasRequiredKeys = validators.hasKeys(req.body, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
         if (
-            !hasRequiredKeys ||
             !validators.isNonEmptyString(req.body.username) ||
             !validators.isNonEmptyString(req.body.password) ||
             !validators.isNonEmptyString(req.body.name) ||
-            !validators.isNonEmptyString(req.body.user_type) ||
-            !allowedUserTypes.includes(req.body.user_type)
+            !validators.isNonEmptyString(req.body.user_type)
         )
-            return false;
-        return true;
+            return [false, "Invalid user data!"];
+        if (!allowedUserTypes.includes(req.body.user_type)) return [false, "Invalid user type!"];
+        return [true, ""];
     };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Insufficient/Invalid user data!" };
+        const validateInputResponse = validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
         } else {
@@ -51,20 +52,21 @@ const createUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-    const inputIsValid = () => {
+    const validateInput = () => {
         let requiredKeys = ["username", "password"];
         let hasRequiredKeys = validators.hasKeys(req.body, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
         if (
-            !hasRequiredKeys ||
             !validators.isNonEmptyString(req.body.username) ||
             !validators.isNonEmptyString(req.body.password)
         )
-            return false;
-        return true;
+            return [false, "Invalid user data!"];
+        return [true, ""];
     };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Insufficient user data!" };
+        const validateInputResponse = validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
         } else {

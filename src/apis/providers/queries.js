@@ -1,4 +1,5 @@
-const dbConnection = require("../../db");
+const mysql = require("mysql2");
+const { dbConfig } = require("../../db");
 
 const create = (providerData) => {
     const query = `
@@ -6,6 +7,7 @@ const create = (providerData) => {
     VALUES ('${providerData.code}', '${providerData.publicName}')
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -16,6 +18,7 @@ const create = (providerData) => {
 const read = () => {
     const query = `SELECT * FROM providers;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -26,6 +29,7 @@ const read = () => {
 const readById = (providerId) => {
     const query = `SELECT * FROM providers WHERE id=${providerId};`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -37,6 +41,7 @@ const readCountByIds = (providerIds) => {
     let stringifiedIds = providerIds.join(",");
     const query = `SELECT COUNT(*) AS count FROM providers WHERE id IN (${stringifiedIds});`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);

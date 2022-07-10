@@ -43,9 +43,16 @@ const createUser = async (userData) => {
 const verifyUser = async (idToken) => {
     try {
         let claims = await firebaseAdmin.auth().verifyIdToken(idToken);
-        return claims.access;
+        return {
+            success: true,
+            accessClaim: claims.access,
+        };
     } catch (err) {
         errorLogger("DEBUG LOG ~ file: admin.auth.js ~ verifyUser ~ err", err);
+        return {
+            success: false,
+            message: err.message,
+        };
     }
 };
 

@@ -1,14 +1,15 @@
-const filesModel = require("../files/models");
-const foldersModel = require("../folders/models");
+const fileQueries = require("../files/queries");
+const folderQueries = require("../folders/queries");
+const spaceQueries = require("../spaces/queries");
+const storeQueries = require("../stores/queries");
 const providerUtils = require("../../providers");
-const spacesModel = require("../spaces/models");
-const storesModel = require("../stores/models");
 const errorLogger = require("../../helpers/error_logger");
 const validators = require("../../helpers/validators");
+const { singleFileUpload } = require("../../middlewares/multer.middleware");
 
 const readFiles = async (req, res) => {
     try {
-        const readFilesResponse = await filesModel.read();
+        const readFilesResponse = await fileQueries.read();
         const response = { success: true, files: readFilesResponse };
         res.header("Content-Type", "application/json");
         res.status(200).send(JSON.stringify(response, null, 4));
@@ -21,15 +22,22 @@ const readFiles = async (req, res) => {
 };
 
 const readFileById = async (req, res) => {
-    const inputIsValid = () => !!Number(req.params.id);
+    const validateInput = () => {
+        let requiredKeys = ["id"];
+        let hasRequiredKeys = validators.hasKeys(req.params, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
+        if (!Number(req.params.id)) return [false, "ID not a number!"];
+        return [true, ""];
+    };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Invalid provider id!" };
+        const validateInputResponse = validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
             return;
         }
-        const readFileResponse = await filesModel.readById(req.params.id);
+        const readFileResponse = await fileQueries.readById(req.params.id);
         if (readFileResponse.length == 0) {
             const response = { success: false, message: "No such file!" };
             res.header("Content-Type", "application/json");
@@ -48,106 +56,124 @@ const readFileById = async (req, res) => {
 };
 
 const uploadFile = async (req, res) => {
-    const inputIsValid = () => {
+    const validateInput = async () => {
+        if (!req.file) return [false, "File not provided!"];
         let requiredKeys = ["store_id", "destination"];
         let hasRequiredKeys = validators.hasKeys(req.body, requiredKeys);
-        if (
-            !hasRequiredKeys ||
-            !Number(req.body.store_id) ||
-            !validators.isNonEmptyString(req.body.destination)
-        )
-            return false;
-        if (
-            req.body.destination[0] != "/" ||
-            req.body.destination[req.body.destination.length - 1] == "/"
-        )
-            return false;
-        return true;
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
+        const store_id = req.body.store_id;
+        const readStoreByIdResponse = await storeQueries.readById(store_id);
+        if (readStoreByIdResponse.length == 0) return [false, "No such store!"];
+        const destination = req.body.destination;
+        if (!Number(store_id) || !validators.isNonEmptyString(destination))
+            return [false, "Invalid file data!"];
+        if (destination[0] != "/" || destination[destination.length - 1] == "/")
+            return [false, "Invalid destination path!"];
+        return [true, ""];
     };
-    try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Insufficient/Invalid file data!" };
+    singleFileUpload(req, res, async (err) => {
+        if (err) {
+            errorLogger("DEBUG LOG ~ file: controllers.js ~ uploadFile ~ err", err);
+            const response = { success: false, message: err.message };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
         } else {
-            const storeId = req.body.store_id;
-            const destinationFolder = req.body.destination;
-            // Add folder to DB if it doesn't exist
-            const readStoreResponse = await storesModel.readById(storeId);
-            const readFolderResponse = await foldersModel.readByStoreProviderKey(
-                storeId,
-                destinationFolder
-            );
-            let folderCreateResponse, folderId;
-            if (readFolderResponse.length === 0) {
-                folderCreateResponse = await foldersModel.create({
-                    providerKey: destinationFolder,
-                    storeId: storeId,
-                    spaceId: readStoreResponse[0]["space_id"],
-                    providerId: readStoreResponse[0]["provider_id"],
-                });
-                folderId = folderCreateResponse["insertId"];
-            } else {
-                folderId = readFolderResponse[0]["id"];
+            try {
+                const validateInputResponse = await validateInput();
+                if (!validateInputResponse[0]) {
+                    const response = { success: false, message: validateInputResponse[1] };
+                    res.header("Content-Type", "application/json");
+                    res.status(400).send(JSON.stringify(response, null, 4));
+                } else {
+                    const storeId = req.body.store_id;
+                    const destinationFolder = req.body.destination;
+                    // Add folder to DB if it doesn't exist
+                    const readStoreResponse = await storeQueries.readById(storeId);
+                    const readFolderResponse = await folderQueries.readByStoreProviderKey(
+                        storeId,
+                        destinationFolder
+                    );
+                    let folderCreateResponse, folderId;
+                    if (readFolderResponse.length === 0) {
+                        folderCreateResponse = await folderQueries.create({
+                            providerKey: destinationFolder,
+                            storeId: storeId,
+                            spaceId: readStoreResponse[0]["space_id"],
+                            providerId: readStoreResponse[0]["provider_id"],
+                        });
+                        folderId = folderCreateResponse["insertId"];
+                    } else {
+                        folderId = readFolderResponse[0]["id"];
+                    }
+                    // Read provider code for store and load corresponding utils
+                    const readProviderCodeResponse = await storeQueries.readProviderCode(storeId);
+                    const providerCode = readProviderCodeResponse[0]["provider_code"];
+                    const utils = providerUtils.getUtils(providerCode);
+                    // Read name and vault key for space
+                    const readSpaceResponse = await spaceQueries.readNameVaultKey(
+                        readStoreResponse[0]["space_id"]
+                    );
+                    // Add file to DB
+                    const destination = `${destinationFolder.slice(1)}/${req.file.originalname}`;
+                    const fileCreateResponse = await fileQueries.create({
+                        name: req.file.originalname,
+                        size: req.file.size,
+                        providerKey: destination,
+                        folderId: folderId,
+                        storeId: storeId,
+                        spaceId: readStoreResponse[0]["space_id"],
+                        provider_id: readStoreResponse[0]["provider_id"],
+                    });
+                    // Upload file
+                    await utils.putFile(
+                        readSpaceResponse[0]["vault_key"],
+                        readSpaceResponse[0]["name"],
+                        destination,
+                        req.file.path
+                    );
+                    // Update store file count
+                    await storeQueries.updateFileCount(storeId);
+                    const response = { success: true, file_id: fileCreateResponse["insertId"] };
+                    res.header("Content-Type", "application/json");
+                    res.status(201).send(JSON.stringify(response, null, 4));
+                }
+            } catch (err) {
+                errorLogger("DEBUG LOG ~ file: controllers.js ~ uploadFile ~ err", err);
+                const response = { success: false, message: err.message };
+                res.header("Content-Type", "application/json");
+                res.status(500).send(JSON.stringify(response, null, 4));
             }
-            // Read provider code for store and load corresponding utils
-            const readProviderCodeResponse = await storesModel.readProviderCode(storeId);
-            const providerCode = readProviderCodeResponse[0]["provider_code"];
-            const utils = providerUtils.getUtils(providerCode);
-            // Read name and vault key for space
-            const readSpaceResponse = await spacesModel.readNameVaultKey(
-                readStoreResponse[0]["space_id"]
-            );
-            // Add file to DB
-            const destination = `${destinationFolder.slice(1)}/${req.file.originalname}`;
-            const fileCreateResponse = await filesModel.create({
-                name: req.file.originalname,
-                size: req.file.size,
-                providerKey: destination,
-                folderId: folderId,
-                storeId: storeId,
-                spaceId: readStoreResponse[0]["space_id"],
-                provider_id: readStoreResponse[0]["provider_id"],
-            });
-            // Upload file
-            await utils.putFile(
-                readSpaceResponse[0]["vault_key"],
-                readSpaceResponse[0]["name"],
-                destination,
-                req.file.path
-            );
-            // Update store file count
-            await storesModel.updateFileCount(storeId);
-            const response = { success: true, file_id: fileCreateResponse["insertId"] };
-            res.header("Content-Type", "application/json");
-            res.status(201).send(JSON.stringify(response, null, 4));
         }
-    } catch (err) {
-        errorLogger("DEBUG LOG ~ file: controllers.js ~ uploadFile ~ err", err);
-        const response = { success: false, message: err.message };
-        res.header("Content-Type", "application/json");
-        res.status(500).send(JSON.stringify(response, null, 4));
-    }
+    });
 };
 
 const downloadFile = async (req, res) => {
-    const inputIsValid = () => !!Number(req.params.id);
+    const validateInput = async () => {
+        let requiredKeys = ["id"];
+        let hasRequiredKeys = validators.hasKeys(req.params, requiredKeys);
+        if (!hasRequiredKeys) return [false, "Insufficient data to perform request!"];
+        if (!Number(req.params.id)) return [false, "ID not a number!"];
+        const readFileResponse = await fileQueries.readById(req.params.id);
+        if (readFileResponse.length == 0) return [false, "No such file!"];
+        return [true, ""];
+    };
     try {
-        if (!inputIsValid()) {
-            const response = { success: false, message: "Invalid file id!" };
+        const validateInputResponse = await validateInput();
+        if (!validateInputResponse[0]) {
+            const response = { success: false, message: validateInputResponse[1] };
             res.header("Content-Type", "application/json");
             res.status(400).send(JSON.stringify(response, null, 4));
             return;
         }
         const fileId = req.params.id;
         // Read provider code for store and load corresponding utils
-        const readProviderCodeResponse = await filesModel.readProviderCode(fileId);
+        const readProviderCodeResponse = await fileQueries.readProviderCode(fileId);
         const providerCode = readProviderCodeResponse[0]["provider_code"];
         const utils = providerUtils.getUtils(providerCode);
         // Read space id, name and provider key
-        const readSpaceProviderKeyResponse = await filesModel.readSpaceProviderKey(fileId);
+        const readSpaceProviderKeyResponse = await fileQueries.readSpaceProviderKey(fileId);
         // Read name and vault key for space
-        const readSpaceResponse = await spacesModel.readNameVaultKey(
+        const readSpaceResponse = await spaceQueries.readNameVaultKey(
             readSpaceProviderKeyResponse[0]["space_id"]
         );
         if (req.accessClaim === "user") {

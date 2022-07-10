@@ -1,9 +1,11 @@
-const dbConnection = require("../../db");
+const mysql = require("mysql2");
+const { dbConfig } = require("../../db");
 
 const create = (spaceData) => {
     const query = `INSERT INTO spaces (name, secret_id) 
     VALUES ('${spaceData.name}', ${spaceData.secretId});`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -21,6 +23,7 @@ const read = () => {
     ORDER BY spaces.id; 
     `;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -39,6 +42,18 @@ const readById = (spaceId) => {
     ORDER BY spaces.id; 
     `;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.execute(query, (err, res) => {
+            if (err) reject(err);
+            resolve(res);
+        });
+    });
+};
+
+const readByName = (spaceName) => {
+    const query = `SELECT * FROM spaces WHERE name='${spaceName}';`;
+    return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -49,6 +64,7 @@ const readById = (spaceId) => {
 const associateProvider = (spaceId, providerId) => {
     const query = `INSERT INTO space_provider (space_id, provider_id) VALUES (${spaceId}, ${providerId});`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -64,6 +80,7 @@ const readNameVaultKey = (spaceId) => {
     WHERE spaces.id=${spaceId}
     ;`;
     return new Promise((resolve, reject) => {
+        const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.execute(query, (err, res) => {
             if (err) reject(err);
             resolve(res);
@@ -71,4 +88,4 @@ const readNameVaultKey = (spaceId) => {
     });
 };
 
-module.exports = { create, read, readById, associateProvider, readNameVaultKey };
+module.exports = { create, read, readById, readByName, associateProvider, readNameVaultKey };
