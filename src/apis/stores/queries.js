@@ -12,6 +12,7 @@ const create = (storeData) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -27,6 +28,7 @@ const read = () => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -43,6 +45,7 @@ const readById = (storeId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -57,6 +60,7 @@ const readProviderCode = (storeId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -68,6 +72,7 @@ const updateFileCount = (storeId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 

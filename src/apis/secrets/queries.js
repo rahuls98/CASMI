@@ -10,6 +10,7 @@ const create = (secretData) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
@@ -21,6 +22,7 @@ const readById = (secretId) => {
             if (err) reject(err);
             resolve(res);
         });
+        dbConnection.end();
     });
 };
 
