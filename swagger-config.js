@@ -760,6 +760,7 @@ module.exports = {
                 summary: "Get a template for custom secrets",
                 description: "Allowed access: [admin]",
                 tags: ["Secrets"],
+                security: [{ "Bearer token": [] }],
                 responses: {
                     200: {
                         description: "Success",
