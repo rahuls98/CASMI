@@ -67,7 +67,10 @@ const uploadFile = async (req, res) => {
         const destination = req.body.destination;
         if (!Number(store_id) || !validators.isNonEmptyString(destination))
             return [false, "Invalid file data!"];
-        if (destination[0] != "/" || destination[destination.length - 1] == "/")
+        if (
+            destination.length > 1 &&
+            (destination[0] != "/" || destination[destination.length - 1] == "/")
+        )
             return [false, "Invalid destination path!"];
         return [true, ""];
     };
@@ -114,7 +117,12 @@ const uploadFile = async (req, res) => {
                         readStoreResponse[0]["space_id"]
                     );
                     // Add file to DB
-                    const destination = `${destinationFolder.slice(1)}/${req.file.originalname}`;
+                    let destination;
+                    if (destinationFolder == "/") {
+                        destination = req.file.originalname;
+                    } else {
+                        destination = `${destinationFolder.slice(1)}/${req.file.originalname}`;
+                    }
                     const fileCreateResponse = await fileQueries.create({
                         name: req.file.originalname,
                         size: req.file.size,
