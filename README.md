@@ -10,8 +10,10 @@ CASMI is a NodeJS solution that enables cloud-agnostic file management. The CASM
 
 ## Dependencies
 
--   .env
--   firebase.config.js
+-   Hashicorp vault server to maintain provider secrets, with a role (and associated policy) for casmi-server
+-   MySQL database server (Setup script : [casmi.sql](https://github.com/rahuls98/CASMI/blob/main/casmi.sql))
+-   Firebase authentication project for casmi-server with client and service account credentials, provided in a `firebase.config.js` file
+-   `.env` file (Reference : [.env.example](https://github.com/rahuls98/CASMI/blob/main/.env.example))
 
 # Setup
 
