@@ -8,6 +8,8 @@ const {
 const { getSignedUrl: getPresignedUrl } = require("@aws-sdk/s3-request-presigner");
 const errorLogger = require("../../helpers/error_logger");
 const { vault, appRoleConfig } = require("../../vault");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const getStorageClient = (config) => {
     return new S3Client({
@@ -67,7 +69,9 @@ const getSignedUrl = async (vaultKey, storeName, sourceKey) => {
             Body: "",
         };
         const command = new GetObjectCommand(params);
-        const signedUrl = await getPresignedUrl(storageClient, command, { expiresIn: 20 });
+        const signedUrl = await getPresignedUrl(storageClient, command, {
+            expiresIn: process.env.SIGNED_URL_EXPIRY_SECONDS,
+        });
         return signedUrl;
     } catch (err) {
         errorLogger("DEBUG LOG ~ file: aws.utils.js ~ getPresignedUrl ~ err", err);

@@ -6,6 +6,8 @@ const {
 } = require("@azure/storage-blob");
 const errorLogger = require("../../helpers/error_logger");
 const { vault, appRoleConfig } = require("../../vault");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const getStorageClient = (config) => {
     return BlobServiceClient.fromConnectionString((connectionString = config["CONNECTION_STRING"]));
@@ -58,7 +60,7 @@ const getSignedUrl = async (vaultKey, storeName, sourceKey) => {
             {
                 containerName: storeName,
                 blobName: sourceKey,
-                expiresOn: new Date(Date.now() + 20 * 1000),
+                expiresOn: new Date(Date.now() + process.env.SIGNED_URL_EXPIRY_SECONDS * 1000),
                 permissions: BlobSASPermissions.parse("racwd"),
             },
             sharedKeyCredential
