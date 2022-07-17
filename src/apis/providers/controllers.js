@@ -1,6 +1,7 @@
 const providerQueries = require("./queries");
 const errorLogger = require("../../helpers/error_logger");
 const validators = require("../../helpers/validators");
+const { getUtils } = require("../../providers");
 
 const createProvider = async (req, res) => {
     const validateInput = () => {
@@ -15,6 +16,7 @@ const createProvider = async (req, res) => {
             return [false, "Invalid provider data!"];
         if (!validators.isCorrectLength(req.body.code, 3, 3))
             return [false, "Invalid provider code!"];
+        if (!getUtils(req.body.code)) return [false, "Unsupported provider!"];
         return [true, ""];
     };
     try {

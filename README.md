@@ -8,16 +8,91 @@ CASMI is a NodeJS solution that enables cloud-agnostic file management. The CASM
 
 <br/>
 
-## Dependencies
+# Dependencies
 
 -   Hashicorp vault server to maintain provider secrets, with a role (and associated policy) for casmi-server
--   MySQL database server (Setup script : [casmi.sql](https://github.com/rahuls98/CASMI/blob/main/casmi.sql))
 -   Firebase authentication project for casmi-server with client and service account credentials, provided in a `firebase.config.js` file
+-   MySQL database server (Setup script : [casmi.sql](https://github.com/rahuls98/CASMI/blob/main/casmi.sql))
 -   `.env` file (Reference : [.env.example](https://github.com/rahuls98/CASMI/blob/main/.env.example))
+
+<br/>
 
 # Setup
 
-### NodeJS
+### casmi-vault (Hashicorp Vault)
+
+#### docker-compose.yml
+
+```
+version: "3.1"
+services:
+    casmi-vault:
+        image: vault
+        container_name: casmi-vault
+        ports:
+            - <host_port>:8200
+        volumes:
+            - /path/to/volumes/logs:/vault/logs
+            - /path/to/volumes/file:/vault/file
+            - /path/to/volumes/config:/vault/config
+        cap_add:
+            - IPC_LOCK
+        entrypoint: vault server -config=/vault/config/vault.json
+```
+
+#### vault.json
+
+```
+{
+    "backend": {
+        "file": {
+            "path": "/vault/file"
+        }
+    },
+    "listener": {
+        "tcp": {
+            "address": "0.0.0.0:<host_port>",
+            "tls_disable": 1
+        }
+    },
+    "ui": true
+}
+```
+
+### casmi-auth (Firebase Authentication)
+
+#### firebase.config.js
+
+```
+{
+    FIREBASE: {
+        CLIENT: {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: "",
+        },
+        ADMIN: {
+            type: "",
+            project_id: "",
+            private_key_id: "",
+            private_key: "",
+            client_email: "",
+            client_id: "",
+            auth_uri: "",
+            token_uri: "",
+            auth_provider_x509_cert_url: "",
+            client_x509_cert_url: "",
+        },
+    },
+}
+```
+
+### casmi-server
+
+#### NodeJS
 
 Developed and tested with - [v16.16.0](https://nodejs.org/dist/v16.16.0/docs/api/)
 
@@ -29,7 +104,7 @@ Steps:
 4. Install node package dependencies using : `npm install`
 5. Run node server : `npm start`
 
-### Docker
+#### Docker
 
 ```
 docker run -d \
@@ -41,7 +116,7 @@ docker run -d \
 sureshrahul/casmi:<tag>
 ```
 
-### Docker Compose
+#### docker-compose.yml
 
 ```
 version: "3.1"
