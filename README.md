@@ -30,7 +30,7 @@ services:
         image: vault
         container_name: casmi-vault
         ports:
-            - <host_port>:8200
+            - <host_port>:<container_port>
         volumes:
             - /path/to/volumes/logs:/vault/logs
             - /path/to/volumes/file:/vault/file
@@ -51,7 +51,7 @@ services:
     },
     "listener": {
         "tcp": {
-            "address": "0.0.0.0:<host_port>",
+            "address": "0.0.0.0:<container_port>",
             "tls_disable": 1
         }
     },
