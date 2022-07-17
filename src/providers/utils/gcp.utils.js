@@ -2,6 +2,8 @@ const { Storage } = require("@google-cloud/storage");
 const stream = require("stream");
 const errorLogger = require("../../helpers/error_logger");
 const { vault, appRoleConfig } = require("../../vault");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const getStorageClient = (config) => {
     return new Storage({
@@ -52,7 +54,7 @@ const getSignedUrl = async (vaultKey, storeName, sourceKey) => {
         const options = {
             version: "v4",
             action: "read",
-            expires: Date.now() + 20 * 1000, // 20 seconds
+            expires: Date.now() + process.env.SIGNED_URL_EXPIRY_SECONDS * 1000, // 20 seconds
         };
         const [url] = await storageClient.bucket(storeName).file(sourceKey).getSignedUrl(options);
         return url;
