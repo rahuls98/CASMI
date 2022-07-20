@@ -4,7 +4,7 @@
 
 CASMI is a NodeJS solution that enables cloud-agnostic file management. The CASMI server provides access-controlled APIs to interact with file storage services of different cloud providers. It currently supports Amazon S3, Google Cloud Storage, and Azure Blob Storage.
 
-![Usage instructions](https://github.com/rahuls98/CASMI/blob/main/usage-instructions.pdf)
+[Usage instructions](https://github.com/rahuls98/CASMI/blob/main/usage-instructions.pdf)
 
 ![CASMI architecture](./architecture.png "CASMI architecture")
 
