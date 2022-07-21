@@ -47,8 +47,11 @@ services:
 ```
 {
     "backend": {
-        "file": {
-            "path": "/vault/file"
+        "mysql" {
+            "database": "",
+            "table": "",
+            "username": "",
+            "password": ""
         }
     },
     "listener": {
